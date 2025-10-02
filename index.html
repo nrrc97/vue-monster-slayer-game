@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monster Slayer Quest</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/vue@3.4.9/dist/vue.global.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div id="game">
+
+      <header>
+        <h1 class="game-title">Monster Slayer Quest</h1>
+      </header>
+
+      <!-- Pantalla de exploración -->
+      <section id="world-map" v-if="mode === 'exploration'" tabindex="0"
+        :class="criticalText">
+        <div class="zone-info" :class="criticalText">
+          Zona: {{ currentZone }} | Posición: {{ playerTile.x }}, {{ playerTile.y }}
+        </div>
+
+        <button id="menu" @click="toggleMainMenu" :class="criticalText">Menú</button>
+        
+        <div v-if="activeMenu !== 'none'" class="pause-overlay" >
+      
+          <div v-if="activeMenu === 'main'" class="menu-panel main-menu">
+            <p @click="openSubMenu('inventory')" :class="criticalText">Inventario</p>
+            <p @click="openSubMenu('equipment')" :class="criticalText">Equipo</p>
+            <p @click="openSubMenu('stats')" :class="criticalText">Estado</p>
+          </div>
+
+          <div v-if="activeMenu === 'inventory'" class="menu-panel inventory-menu">
+            <h3 :class="criticalText">Inventario</h3>
+            <ul :class="criticalText">
+              <li v-if="inventory.length === 0">
+                <span>Tu bolsa está vacía.</span>
+              </li>
+              <li v-for="(item, index) in inventory" :key="index">
+                <span>{{ item.name }}</span>
+                <span v-if="item.quantity > 1">x{{ item.quantity }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div v-if="activeMenu === 'equipment'" class="menu-panel inventory-menu">
+            <h3 :class="criticalText">Equipo</h3>
+            <div class="equipment-row">
+              <p :class="criticalText">
+                <span class="equip-icon weapon-icon"></span> 
+                {{equipment.weapon ? equipment.weapon.name : 'Nada'}}
+              </p> 
+              <button class="equip-button">Cambiar</button>
+            </div>
+            <div class="equipment-row">
+              <p :class="criticalText">
+                <span class="equip-icon armor-icon"></span> 
+                {{equipment.armor ? equipment.armor.name : 'Nada'}}
+              </p>
+              <button class="equip-button">Cambiar</button>
+            </div>
+            <div class="equipment-row">
+              <p :class="criticalText">
+                <span class="equip-icon shield-icon"></span> 
+                {{equipment.shield ? equipment.shield.name : 'Nada'}}
+              </p>
+              <button class="equip-button">Cambiar</button>
+            </div>
+            <ul :class="criticalText" v-for="accessory in equipment.accessories">
+              <li>{{accessory.name}}</li>
+            </ul>
+          </div>
+
+          <div v-if="activeMenu === 'stats'" class="menu-panel stats-menu">
+            <div class="stats-column description">
+              <h3 :class="criticalText">Player</h3>
+              <h4 :class="criticalText">Nivel {{playerLevel}}</h4>
+              <p :class="criticalText">HP: {{playerHealth}} / {{maxPlayerHealth}}</p>
+              <p :class="criticalText">MP: {{playerMana}} / {{maxPlayerMana}}</p>
+              <p :class="criticalText"><span class="equip-icon weapon-icon"></span>{{equipment.weapon ? equipment.weapon.name : 'Nada'}}</p>
+              <p :class="criticalText"><span class="equip-icon armor-icon"></span>{{equipment.armor ? equipment.armor.name : 'Nada'}}</p>
+              <p :class="criticalText"><span class="equip-icon shield-icon"></span>{{equipment.shield ? equipment.shield.name : 'Nada'}}</p>
+            </div>
+            <div class="stats-column statistics">
+              <p :class="criticalText">Fuerza: {{basePlayerAttack}}</p>
+              <p :class="criticalText">Resistencia: {{basePlayerDefense}}</p>
+              <p :class="criticalText">Ataque: {{basePlayerAttack + getTotalAttack()}}</p>
+              <p :class="criticalText">Defensa: {{basePlayerDefense + getTotalDefense()}}</p>
+              <p :class="criticalText">EXP: {{playerEXP}}</p>
+              <p :class="criticalText">G: {{playerGold}}</p>
+              <p :class="criticalText">EXP para subir: {{expToNextLevel}}</p>
+            </div>
+          </div>
+
+          <button @click="toggleMainMenu" class="return-button">Atrás</button>
+
+        </div>
+        
+        <!-- Elementos del mapa -->
+
+        <div class="map-grid" :style="mapGridStyle">
+          <div v-for="(tile, index) in visibleTiles"
+            :key="index"
+            class="map-tile"
+            :class="getTileClass(tile)"
+            :style="getTileStyle(tile)"></div>
+        </div>
+
+        <!-- Personaje del jugador -->
+        <div class="player-character" :style="playerStyle"></div>
+
+        <!-- Mini mapa -->
+        <div class="mini-map">
+          <div class="mini-map-player" :style="miniMapPlayerStyle"></div>
+        </div>
+      </section>
+
+      <!-- Pantalla de batalla -->
+      <section v-else-if="mode === 'battle'" class="battle-screen" :class="{'shake' : playerShaking}">
+
+        <!-- Barra de vida del monstruo -->
+        <section id="monster" class="container">
+          <h2 :class="{'critical__condition' : playerHealth <= maxPlayerHealth * 0.25,
+                   'dead__condition' : playerHealth <= 0}">{{currentMonster.name}}</h2>
+          <!--<div class="healthbar">
+            <div class="healthbar__value" v-if="monsterHealth > 0" :style="monsterHealthBarStyles"></div>
+          </div>-->
+          <div class="monster-image-container"
+            :style="battleBackgroundStyle">
+            <img v-if="currentMonster.imgPath" 
+              :src="currentMonster.imgPath" 
+              :alt="currentMonster.name"
+              :class="{'blink': monsterBlinking, 'cast': monsterCasting,'monster-image-dead' : winner === 'player'}"
+              class="monster-image">
+          </div>
+          
+          <!-- Mensajes de la batalla -->
+          <section id="log" class="container" :class="{'critical__condition' : playerHealth <= maxPlayerHealth * 0.25,
+                   'dead__condition' : playerHealth <= 0}">
+            <h3 v-if="winner === 'player'">¡Ganaste!</h3>
+            <h3 v-else-if="winner === 'monster'">Has muerto...</h3>
+            <h3 v-else-if="winner === 'flee'">Escapaste...</h3>
+            <h3 v-else>Registro de Batalla</h3>
+            <ul>
+              <li v-for="message in logMessages">
+                <span>{{message}}</span>
+              </li>
+              <button @click="returnToExploration" 
+                v-if="(winner === 'player') || (winner === 'flee')"
+                :disabled="levelingUp">Continuar</button>
+            </ul>
+          </section>
+        </section>
+
+        <!-- Barra de vida y maná del jugador -->
+        <section id="player" class="container" 
+          :class="{'critical__condition' : playerHealth <= maxPlayerHealth * 0.25,
+                   'dead__condition': playerHealth <= 0}">
+          <h2>Jugador</h2>
+          <div class="healthbar">
+            <h2>HP: </h2>
+            <div class="healthbar__background">
+              <div class="healthbar__value" v-if="playerHealth > 0" :style="playerHealthBarStyles"
+                :class="{'healthbar__critical' : playerHealth <= maxPlayerHealth * 0.25}">
+                {{ playerHealth + ' / ' + maxPlayerHealth }}
+              </div>
+            </div>
+          </div>
+          <div class="manabar">
+            <h2>MP: </h2>
+            <div class="manabar__background">
+              <div class="manabar__value" v-if="playerMana > 0" :style="playerManaBarStyles">
+                {{ playerMana + ' / ' + maxPlayerMana }}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Comandos de batalla -->
+        <section id="controls" v-if="(!isActionInProgress) && (winner != 'player') && (!showSpells)">
+          <button @click="attackMonster" :disabled="winner || isActionInProgress" :class="criticalText">ATAQUE</button>
+          <button @click="handleSpellsButton" :disabled="winner || isActionInProgress" :class="criticalText">MAGIA</button>
+          <button @click="handleFleeButton" :disabled="winner || isActionInProgress" :class="criticalText">HUIR</button>
+        </section>
+
+        <section id="magic-controls" v-if="(showSpells) && (!isActionInProgress) && (winner != 'player')">
+          <button @click="specialAttackMonster" :disabled="!checkMana(4) || winner || isActionInProgress" :class="criticalText">ATAQUE DE FUEGO</button>
+          <button @click="healPlayer" :disabled="!checkMana(3) || winner || isActionInProgress" :class="criticalText">CURAR</button>
+          <button @click="handleSpellsButton" :disabled="winner || isActionInProgress" :class="criticalText">REGRESAR</button>
+        </section>
+      </section>
+
+      <!-- Pantalla de transición -->
+      <div class="transition-screen" :class="{'screen-visible': transitionActive}"></div>
+
+      <!-- Controles de sonido -->
+      <div class="sound-controls">
+        <button @click="toggleMusic">Musica: {{musicEnabled ? 'On' : 'Off'}}</button>
+        <button @click="toggleSfx">SFX: {{ sfxEnabled ? 'On' : 'Off' }}</button>
+        <!-- <button @click="toggleZoom">Zoom x{{ZOOM_LEVEL}}</button> -->
+      </div>
+
+      <!-- Elementos de audio -->
+       <audio ref="backgroundMusic" loop> 
+        <source src="./assets/music/Background.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>o
+      <audio ref="battleMusic" loop> 
+        <source src="./assets/music/Battle-loop.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="playerAttackSound"> 
+        <source src="./assets/sfx/Make-move1.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio> 
+      <audio ref="enemyAttackSound"> 
+        <source src="./assets/sfx/Make-move2.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="spellSound"> 
+        <source src="./assets/sfx/Spell.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="hitSound"> 
+        <source src="./assets/sfx/Hit.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="criticalHitSound"> 
+        <source src="./assets/sfx/Critical-hit.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="healSound"> 
+        <source src="./assets/sfx/Heal.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="victorySound"> 
+        <source src="./assets/sfx/Victory.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="levelupSound"> 
+        <source src="./assets/sfx/levelup.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="defeatSound"> 
+        <source src="./assets/sfx/Defeat.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="fleeSound">
+        <source src="./assets/sfx/Flee.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="missSound1">
+        <source src="./assets/sfx/Miss1.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="missSound2">
+        <source src="./assets/sfx/Miss2.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="menuSound">
+        <source src="./assets/sfx/Menu.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="fireSound">
+        <source src="./assets/sfx/Fire.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+    </div>
+  </body>
+</html>

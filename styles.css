@@ -1,0 +1,617 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Jost', sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+}
+
+header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+  padding: 0.5rem;
+  background-color: #880017;
+  color: white;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+section {
+  width: 90%;
+  max-width: 40rem;
+  margin: auto;
+}
+
+.healthbar {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 40px;
+  margin: 1rem 0;
+  align-items: center;
+}
+
+.healthbar__background{
+  background: #fde5e5;
+  border: 1px solid #575757;
+  width: 80%;
+  height: 100%;
+}
+
+.healthbar__value {
+  background-color: #00a876;
+  width: 100%;
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.healthbar__critical{
+  background-color: #ffae00;
+  color: black;
+}
+
+.critical__condition, .critical__condition h3,
+.critical__condition h4{
+  color: #ffae00;
+}
+
+.dead__condition{
+  color: rgb(209, 10, 73);
+}
+
+.manabar {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 20px;
+  margin: 0.6rem 0;
+  align-items: center;
+}
+
+.manabar__background{
+  background: #fde5e5;
+  border: 1px solid #575757;
+  width: 80%;
+  height: 100%;
+}
+
+.manabar__value {
+  background-color: #146de0;
+  width: 100%;
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.container {
+  text-align: center;
+  padding: 0.5rem;
+  margin: 1rem auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+  border-radius: 12px;
+  background-color: #122335;
+}
+
+#player {
+  position: absolute;
+  left: -20%;
+  top: -2.5%;
+  max-width: 15rem;
+  background-color: black;
+  border-radius: 10px;
+  border: 2px solid white;
+}
+#player h2 {
+  margin: 0;
+}
+
+#monster h2{
+  margin: 0.25rem;
+}
+
+#controls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+#magic-controls{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+button {
+  font: inherit;
+  border: 2px solid #ffffff;
+  background-color: #000000;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  margin: 1rem;
+  width: 12rem;
+  cursor: pointer;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.26);
+  transition: all 0.2s ease-in-out;
+}
+
+button:focus {
+  outline: none;
+}
+
+button:hover,
+button:active {
+  background-color: #ffffff;
+  border-color: #000000;
+  color: black;
+  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.26);
+}
+
+button:disabled {
+  background-color: #ccc;
+  border-color: #ccc;
+  box-shadow: none;
+  color: #3f3f3f;
+  cursor: not-allowed;
+}
+
+#log ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  background-color: black;
+  border-radius: 10px;
+}
+
+#log li {
+  margin: 0.5rem 0;
+}
+
+.log--player {
+  color: #7700ff;
+}
+
+.log--monster {
+  color: #da8d00;
+}
+
+.log--damage {
+  color: red;
+}
+
+.log--heal {
+  color: green;
+}
+
+/* Pantalla de exploración */
+
+#world-map{
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background-color: #1a1a1a;
+  overflow: hidden;
+  border: 4px solid #8b4513;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+#menu{
+  position: absolute;
+  top: 1%;
+  right: 1%;
+  z-index: 11;
+  width: 5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  background-color: black;
+  border-width: 2px;
+  border-color: white;
+}
+
+#menu:hover{
+  background-color: white;
+  border-color: black;
+  color: black;
+}
+
+.pause-overlay{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-panel {
+  background-color: black;
+  border: 2px solid white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  color: white;
+  min-width: 450px;
+  max-width: 100%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  font-family: 'Press Start 2P', sans-serif;
+}
+
+.menu-panel h3, .menu-panel h4 {
+    margin-top: 0;
+}
+
+.main-menu p {
+  padding: 12px;
+  border: 1px solid #30363d;
+  border-radius: 5px;
+  margin: 10px 0;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.main-menu p:hover {
+  background-color: #161b22;
+  border-color: #8b949e;
+}
+
+.inventory-menu ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+.inventory-menu li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 5px;
+  border-bottom: 1px solid #21262d;
+}
+
+.inventory-menu li:last-child {
+  border-bottom: none;
+}
+
+.stats-menu{
+  padding: 0;
+  display: flex;
+  gap: 1px;
+  border: solid 0px;
+}
+
+.stats-column{
+  flex: 1;
+  border: 2px solid white;
+  border-radius: 8px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.stats-column p{
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0;
+}
+
+.equip-icon{
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.equipment-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5px;
+  border-bottom: 1px solid #21262d;
+}
+
+.equipment-row p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.equip-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.weapon-icon{
+  background-image: url('./assets/sprites/icons/sword-icon.png');
+}
+
+.armor-icon{
+  background-image: url('./assets/sprites/icons/armor-icon.png');
+}
+
+.shield-icon{
+  background-image: url('./assets/sprites/icons/shield-icon.png');
+}
+
+.return-button{
+  position: absolute;
+  top: 1%;
+  right: 1%;
+  z-index: 51;
+  width: 5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  background-color: black;
+  border-width: 2px;
+  border-color: white;
+}
+
+.map-grid{
+  position: absolute;
+  display: grid;
+  grid-template-columns: repeat(120, 20px);
+  grid-template-rows: repeat(120, 20px);
+}
+
+.map-tile{
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+}
+
+.grass{
+  background-image: url('assets/sprites/terrain/Grass.png');
+}
+
+.water{
+  background-image: url('assets/sprites/terrain/Water.png');
+}
+
+.poison-swamp{
+  background-image: url('assets/sprites/terrain/PoisonSwamp.png');
+}
+
+.tree{
+  background-image: url('assets/sprites/terrain/Trees.png');
+}
+
+.mountain{
+  background-image: url('assets/sprites/terrain/Mountain.png');
+}
+
+.high-mountain{
+  background-image: url('assets/sprites/terrain/HighMountain.png');
+}
+
+.town{
+  background-image: url('assets/sprites/terrain/Town.png');
+}
+
+.castle{
+  background-image: url('assets/sprites/terrain/Castle.png');
+}
+
+.dungeon{
+  background-image: url('assets/sprites/terrain/Dungeon.png');
+}
+
+.bridge{
+  background-image: url('assets/sprites/terrain/Bridge.png');
+}
+
+.stairs{
+  background-image: url('assets/sprites/terrain/Stairs.png');
+}
+
+.sand{
+  background-image: url('assets/sprites/terrain/Sand.png');
+}
+
+.wall{
+  background-image: url('assets/sprites/terrain/Wall.png');
+}
+
+.player-character{
+  position: absolute;
+  border-radius: 0;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.monster-sprite{
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 20%;
+  z-index: 5;
+  animation: float 3s infinite ease-in-out;
+  border: 1px solid rgba(0,0,0,0.3);
+}
+
+.slime { background-color: #12b3f3; }
+.red-slime { background-color: #e74c3c; }
+.drakee { background-color: #9b59b6; }
+.ghost { background-color: #ecf0f1; }
+
+.zone-info{
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.mini-map{
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 100px;
+  height: 100px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid white;
+}
+
+.mini-map-player{
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: red;
+}
+
+@keyframes float{
+  0%, 100% {transform: translateY(0);}
+  50%{transform: translateY(-5px);}
+}
+
+.transition-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+
+.screen-visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.game-title {
+  text-align: center;
+  color: #f1c40f;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.sound-controls {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.sound-controls button {
+  width: auto;
+  padding: 0.5rem;
+}
+
+/* Animaciones de batalla */
+.battle-screen{
+  position: relative;
+}
+
+.monster-image-container {
+  width: 256px;
+  height: 224px;
+  margin: 10px auto;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 2px solid #FFF;
+}
+
+.monster-image {
+  object-fit: contain;
+  image-rendering: pixelated;
+  transition: all 0.2s;
+}
+
+.monster-image-dead{
+  opacity: 0;
+}
+
+.player-image {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  background-color: #e74c3c;
+  border-radius: 75px;
+  transition: all 0.2s;
+}
+
+.blink {
+  animation: blink-animation 0.3s;
+}
+.cast{
+  animation: cast-animation 0.5s;
+}
+
+@keyframes blink-animation {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes cast-animation{
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 0 white);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(4) drop-shadow(0 0 8px white);
+    transform: scale(1.05);
+  }
+}
+
+.shake {
+  animation: shake-animation 0.5s;
+}
+
+@keyframes shake-animation {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+.critical {
+  animation: critical-animation 0.5s;
+}
+
+@keyframes critical-animation {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.heal-glow {
+  animation: heal-glow-animation 0.5s;
+}
+
+@keyframes heal-glow-animation {
+  0%, 100% { box-shadow: 0 0 0 rgba(0, 255, 0, 0); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.7); }
+}
