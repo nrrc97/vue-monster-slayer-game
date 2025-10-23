@@ -540,9 +540,9 @@ const app = createApp({
 
         // Equipo del jugador
         const equipment = ref({
-            weapon: allItems["club"],
-            armor: allItems["lether-armor"],
-            shield: allItems["leather-shield"],
+            weapon: allItems["iron-axe"],
+            armor: allItems["iron-armor"],
+            shield: allItems["iron-shield"],
             accessories: []
         });
 
@@ -675,6 +675,11 @@ const app = createApp({
         const sfxEnabled = ref(true);
         const backgroundMusic = ref(null);
         const battleMusic = ref(null);
+        const battleMusicStart1 = ref(null);
+        const battleMusic1 = ref(null);
+        const battleMusicStart2 = ref(null);
+        const battleMusic2 = ref(null);
+        const battleMusic3 = ref(null);
         const hitSound = ref(null);
         const fireSound = ref(null);
         const missSound1 = ref(null);
@@ -868,8 +873,8 @@ const app = createApp({
         watch(playerHealth, async(value) => {
             await delay(1000);
             if(value <= 0){
+                stopMusic();
                 winner.value = 'monster';
-                battleMusic.value.pause();
                 playSound(defeatSound, 0.7);
                 // TODO: Pantalla de Game Over
             }
@@ -877,21 +882,21 @@ const app = createApp({
 
         watch(monsterHealth, async(value) => {
             if(value <= 0){
+                stopMusic();
                 winner.value = 'player';
                 logMessages.value = [];
-                battleMusic.value.pause();
-                playSound(victorySound);
+                playSound(victorySound, 0.9);
                 defeatMonster();
             }
         });
 
         watch(mode, (newMode) => {
             if(newMode === 'exploration'){
-                battleMusic.value.pause();
+                stopMusic();
                 playMusic(backgroundMusic);
             } else if(newMode === 'battle'){
-                backgroundMusic.value.pause();
-                playMusic(battleMusic);
+                stopMusic();
+                playBattleMusics();
             }
         });
 
@@ -1572,7 +1577,7 @@ const app = createApp({
 
             // Mensaje de log
             levelingUp.value = true;
-            playSound(levelupSound);
+            playSound(levelupSound, 0.8);
             await delay(2000);
             addLogMessage('Has subido al nivel ' + playerLevel.value +'!');
             await delay(500);
@@ -1590,12 +1595,12 @@ const app = createApp({
         };
 
         const defeatMonster = async () => {
+            // Mensaje de victoria
+            addLogMessage('Haz derrotado a ' + currentMonster.value.name + '!');
+
             // Ganar experiencia
             gainExperience(monsterXP.value);
             gainGold(monsterGold.value);
-            
-            // Mensaje de victoria
-            addLogMessage('Haz derrotado a ' + currentMonster.value.name + '!');
             
             // Pequeña pausa antes de mostrar el mensaje de continuación
             await delay(1000);
@@ -1607,14 +1612,14 @@ const app = createApp({
 
         const flee = () => {
             winner.value = 'flee';
-            battleMusic.value.pause();
+            stopMusic();
             playSound(fleeSound, 0.6);
         };
 
         const startNewGame = () => {
             // TODO: Cargar Partida
             defeatSound.value.pause();
-            playMusic(battleMusic);
+            playBattleMusics();
             playerHealth.value = maxPlayerHealth.value;
             monsterHealth.value = maxMonsterHealth.value;
             playerMana.value = maxPlayerMana.value;
@@ -2194,18 +2199,75 @@ const app = createApp({
         }
 
         // Métodos de sonido
-        const playMusic = (audioRef) => {
+        const stopMusic = () => {
+            const allMusic = [
+                backgroundMusic,
+                battleMusic,
+                battleMusic1,
+                battleMusicStart1,
+                battleMusic2,
+                battleMusicStart2,
+                battleMusic3
+            ];
+            allMusic.forEach(audioRef => {
+                if(audioRef.value){
+                    audioRef.value.pause();
+                    audioRef.value.currentTime = 0;
+                }
+            });
+        };
+
+        const playMusic = async(audioRef, volume = 0.4) => {
             if (!musicEnabled.value) return;
             
             // Detener toda la música primero
-            backgroundMusic.value.pause();
-            battleMusic.value.pause();
+            stopMusic();
             
             // Reproducir la música solicitada
-            audioRef.value.volume = 0.4;
+            audioRef.value.volume = volume;
             audioRef.value.currentTime = 0;
-            audioRef.value.play().catch(e => console.log("Audio error:", e));
+            try {
+                await audioRef.value.play();
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
         };
+
+        const playBattleMusic1 = async() => {
+            if (!musicEnabled.value) return;
+
+            stopMusic();
+
+            await playMusic(battleMusicStart1);
+
+            battleMusicStart1.value.onended = async() => {
+                if(musicEnabled.value){
+                    await playMusic(battleMusic1);
+                }
+            };
+
+            if (battleMusicStart1.value.ended) {
+                await playMusic(battleMusic1);
+            }
+        }
+
+        const playBattleMusic2 = async() => {
+            if (!musicEnabled.value) return;
+
+            stopMusic();
+
+            await playMusic(battleMusicStart2, 0.6);
+
+            battleMusicStart2.value.onended = async() => {
+                if(musicEnabled.value){
+                    await playMusic(battleMusic2, 0.6);
+                }
+            };
+
+            if (battleMusicStart2.value.ended) {
+                await playMusic(battleMusic2);
+            }
+        }
         
         const playSound = (audioRef, volume = 1.0) => {
             if (!sfxEnabled.value) return;
@@ -2215,6 +2277,20 @@ const app = createApp({
             audioRef.value.play().catch(e => console.log("SFX error:", e));
         };
         
+        playBattleMusics = () => {
+            if(!musicEnabled.value) return;
+
+            stopMusic();
+
+            if (currentMonster.value.level > 8){
+                playMysic(battleMusic3);
+            } else if (currentMonster.value.level > 4){
+                playBattleMusic2();
+            } else {
+                playBattleMusic1();
+            }
+        }
+
         const toggleMusic = () => {
             musicEnabled.value = !musicEnabled.value;
             playSound(menuSound, 0.7);
@@ -2223,11 +2299,10 @@ const app = createApp({
                 if (mode.value === 'exploration') {
                     playMusic(backgroundMusic);
                 } else {
-                    playMusic(battleMusic);
+                    playBattleMusics();
                 }
             } else {
-                backgroundMusic.value.pause();
-                battleMusic.value.pause();
+                stopMusic();
             }
         };
         
@@ -2330,6 +2405,11 @@ const app = createApp({
             // Referencias de audio
             backgroundMusic,
             battleMusic,
+            battleMusic1,
+            battleMusic2,
+            battleMusic3,
+            battleMusicStart1,
+            battleMusicStart2,
             playerAttackSound,
             enemyAttackSound,
             spellSound,

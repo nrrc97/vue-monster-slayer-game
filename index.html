@@ -26,7 +26,7 @@
           Zona: {{ currentZone }} | Posición: {{ playerTile.x }}, {{ playerTile.y }}
         </div>
 
-        <button id="menu" @click="toggleMainMenu" :class="criticalText">Menú</button>
+        <button id="menu" @click="toggleMainMenu" @keyup.enter="toggleMainMenu" :class="criticalText">Menú</button>
         
         <div v-if="activeMenu !== 'none'" class="pause-overlay" >
       
@@ -98,7 +98,7 @@
             </div>
           </div>
 
-          <button @click="toggleMainMenu" class="return-button">Atrás</button>
+          <button @click="toggleMainMenu" @keyup.enter="toggleMainMenu" class="return-button">Atrás</button>
 
         </div>
         
@@ -151,7 +151,7 @@
               <li v-for="message in logMessages">
                 <span>{{message}}</span>
               </li>
-              <button @click="returnToExploration" 
+              <button @click="returnToExploration" @keyup.space="returnToExploration"
                 v-if="(winner === 'player') || (winner === 'flee')"
                 :disabled="levelingUp">Continuar</button>
             </ul>
@@ -183,13 +183,17 @@
         </section>
 
         <!-- Comandos de batalla -->
-        <section id="controls" v-if="(!isActionInProgress) && (winner != 'player') && (!showSpells)">
+        <section id="controls" v-if="(!isActionInProgress) && (winner != 'player') && (!showSpells)"
+        @keyup.a="attackMonster"
+        @keyup.m="handleSpellsButton"
+        @keyup.h="handleFleeButton">
           <button @click="attackMonster" :disabled="winner || isActionInProgress" :class="criticalText">ATAQUE</button>
           <button @click="handleSpellsButton" :disabled="winner || isActionInProgress" :class="criticalText">MAGIA</button>
           <button @click="handleFleeButton" :disabled="winner || isActionInProgress" :class="criticalText">HUIR</button>
         </section>
 
-        <section id="magic-controls" v-if="(showSpells) && (!isActionInProgress) && (winner != 'player')">
+        <section id="magic-controls" v-if="(showSpells) && (!isActionInProgress) && (winner != 'player')"
+        @keyup.backspace="handleSpellsButton">
           <button @click="specialAttackMonster" :disabled="!checkMana(4) || winner || isActionInProgress" :class="criticalText">ATAQUE DE FUEGO</button>
           <button @click="healPlayer" :disabled="!checkMana(3) || winner || isActionInProgress" :class="criticalText">CURAR</button>
           <button @click="handleSpellsButton" :disabled="winner || isActionInProgress" :class="criticalText">REGRESAR</button>
@@ -209,9 +213,24 @@
       <!-- Elementos de audio -->
        <audio ref="backgroundMusic" loop> 
         <source src="./assets/music/Background.mp3" type="audio/mpeg" preload="auto" style="display: none;">
-      </audio>o
+      </audio>
       <audio ref="battleMusic" loop> 
         <source src="./assets/music/Battle-loop.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="battleMusic1" loop> 
+        <source src="./assets/music/Battle1-loop.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="battleMusic2" loop> 
+        <source src="./assets/music/Battle2-loop.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="battleMusic3" loop> 
+        <source src="./assets/music/Battle3-loop.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="battleMusicStart1"> 
+        <source src="./assets/music/Battle1-start.mp3" type="audio/mpeg" preload="auto" style="display: none;">
+      </audio>
+      <audio ref="battleMusicStart2"> 
+        <source src="./assets/music/Battle2-start.mp3" type="audio/mpeg" preload="auto" style="display: none;">
       </audio>
       <audio ref="playerAttackSound"> 
         <source src="./assets/sfx/Make-move1.mp3" type="audio/mpeg" preload="auto" style="display: none;">
