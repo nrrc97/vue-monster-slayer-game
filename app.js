@@ -2283,7 +2283,7 @@ const app = createApp({
             stopMusic();
 
             if (currentMonster.value.level > 8){
-                playMysic(battleMusic3);
+                playMusic(battleMusic3);
             } else if (currentMonster.value.level > 4){
                 playBattleMusic2();
             } else {
