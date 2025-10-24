@@ -3,6 +3,7 @@
 > A fan-made web recreation of the original 1986 Famicom classic, *Dragon Quest*.
 
 This project is a personal tribute to one of the most iconic JRPGs ever made, rebuilt from scratch using modern web technologies.
+For now the game is only available in Spanish, however, langauge settings are in plans for the nearby future, stay tuned!
 
 ## 🎮 Live Demo
 
@@ -17,6 +18,7 @@ This project is a personal tribute to one of the most iconic JRPGs ever made, re
 ## 🧰 Coming Soon!
 
 * Towns and Dungeons with their respective enemies
+* Language Settings (for english or spanish)
 * Item drops after defeating enemies
 * NPCs, Shops and Inns
 * Opening Card and Intro to the game akin to the original game
